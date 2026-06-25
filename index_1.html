@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#4A3FA8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Español">
+<meta name="description" content="スペイン語総合学習アプリ">
+<title>Español — スペイン語学習</title>
+<link id="manifest-link" rel="manifest">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%234A3FA8'/%3E%3Ctext x='90' y='118' font-family='Georgia,serif' font-size='80' font-weight='bold' fill='white' text-anchor='middle'%3EES%3C/text%3E%3C/svg%3E">
+<style>
+:root {
+  --purple:#4A3FA8;--purple-dark:#362E7A;--purple-light:#EAE8FF;--purple-mid:#7B72D9;
+  --teal:#0F8C6E;--teal-light:#D6F5EC;--coral:#D84F2A;--coral-light:#FDEEE9;
+  --gold:#C47B0E;--gold-light:#FDF3DC;
+  --text:#1A1830;--text-2:#5A5875;--text-3:#9895B0;
+  --bg:#F6F5FF;--bg-card:#FFFFFF;--border:rgba(74,63,168,0.12);
+  --radius:16px;--radius-sm:10px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px);
+}
+@media(prefers-color-scheme:dark){:root{
+  --text:#EAE8FF;--text-2:#A9A6CC;--text-3:#6A68A0;
+  --bg:#110F1E;--bg-card:#1E1B30;--border:rgba(160,155,220,0.14);
+  --purple-light:#2A2550;--teal-light:#0D2E26;--coral-light:#2E1208;--gold-light:#2A1E04;
+}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;max-width:430px;margin:0 auto;min-height:100dvh}
+
+/* Header */
+.app-header{padding:calc(var(--safe-top) + 14px) 20px 14px;background:var(--purple);color:white;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.header-logo{width:38px;height:38px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;letter-spacing:.5px;color:white;flex-shrink:0}
+.header-title{font-size:18px;font-weight:700}
+.header-sub{font-size:12px;opacity:.7;margin-top:1px}
+.header-streak{margin-left:auto;background:rgba(255,255,255,.18);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
+
+/* Scroll */
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(80px + var(--safe-bottom))}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center}
+.stat-val{font-size:22px;font-weight:700;color:var(--purple)}
+.stat-lbl{font-size:11px;color:var(--text-3);margin-top:2px}
+.section-hd{font-size:13px;font-weight:600;color:var(--text-3);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px 2px}
+
+/* Panels */
+.panel{display:none}.panel.active{display:block}
+
+/* Lessons */
+.lesson-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.lesson-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .12s,opacity .12s;-webkit-user-select:none;user-select:none}
+.lesson-card:active{transform:scale(.97)}
+.lesson-card.locked{opacity:.45;pointer-events:none}
+.lesson-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.lesson-info{flex:1;min-width:0}
+.lesson-title{font-size:15px;font-weight:600;color:var(--text)}
+.lesson-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.lesson-badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.badge-done{background:var(--teal-light);color:var(--teal)}
+.badge-active{background:var(--purple-light);color:var(--purple)}
+.badge-lock{background:var(--bg);color:var(--text-3);border:1px solid var(--border)}
+
+/* Flashcard */
+.fc-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.fc-progress-wrap{flex:1;height:5px;background:var(--border);border-radius:99px;margin-right:12px;overflow:hidden}
+.fc-progress-fill{height:100%;border-radius:99px;background:var(--purple);transition:width .4s cubic-bezier(.4,0,.2,1)}
+.fc-count{font-size:12px;color:var(--text-3)}
+.scene{perspective:1000px;margin-bottom:16px}
+.card-3d{width:100%;height:200px;position:relative;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1);cursor:pointer}
+.card-3d.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;inset:0;border-radius:var(--radius);backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.face-front{background:var(--purple)}
+.face-back{background:var(--bg-card);border:1px solid var(--border);transform:rotateY(180deg)}
+.fc-word{font-size:36px;font-weight:700;color:white}
+.fc-pos{font-size:13px;color:rgba(255,255,255,.6)}
+.fc-tap{font-size:12px;color:rgba(255,255,255,.5);margin-top:8px}
+.fc-trans{font-size:30px;font-weight:700;color:var(--text)}
+.fc-ex{font-size:13px;color:var(--text-2);text-align:center;padding:0 20px;line-height:1.5}
+.fc-btns{display:flex;gap:10px;margin-top:4px}
+.fc-btn{flex:1;padding:14px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:transform .1s,opacity .1s}
+.fc-btn:active{transform:scale(.96)}
+.btn-again{background:var(--coral-light);color:var(--coral)}
+.btn-got{background:var(--teal-light);color:var(--teal)}
+
+/* Quiz */
+.quiz-q-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px 20px;text-align:center;margin-bottom:16px}
+.quiz-q-text{font-size:20px;font-weight:700;color:var(--text)}
+.quiz-q-sub{font-size:13px;color:var(--text-3);margin-top:6px}
+.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.quiz-opt{padding:16px 12px;background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:500;color:var(--text);cursor:pointer;font-family:inherit;transition:transform .1s,border-color .2s,background .2s;text-align:center}
+.quiz-opt:active:not(:disabled){transform:scale(.96)}
+.quiz-opt.correct{background:var(--teal-light);border-color:var(--teal);color:var(--teal)}
+.quiz-opt.wrong{background:var(--coral-light);border-color:var(--coral);color:var(--coral)}
+.quiz-feedback{background:var(--bg-card);border-radius:var(--radius-sm);padding:14px 16px;font-size:14px;color:var(--text-2);min-height:50px;display:flex;align-items:center;gap:10px;margin-bottom:12px;border:1px solid var(--border)}
+.quiz-feedback .icon{font-size:22px}
+.next-q-btn{width:100%;padding:15px;background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;display:none;transition:opacity .1s}
+.next-q-btn:active{opacity:.85}
+
+/* Chat */
+.chat-messages{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.msg-wrap{display:flex}.msg-wrap.user{justify-content:flex-end}
+.msg-bubble{max-width:78%;padding:11px 14px;border-radius:18px;font-size:15px;line-height:1.5}
+.msg-ai{background:var(--bg-card);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:5px}
+.msg-user{background:var(--purple);color:white;border-bottom-right-radius:5px}
+.msg-typing{font-style:italic;color:var(--text-3);font-size:14px}
+.chat-input-row{display:flex;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:25px;padding:6px 6px 6px 16px;align-items:center}
+.chat-input{flex:1;border:none;background:transparent;font-family:inherit;font-size:15px;color:var(--text);outline:none;min-width:0}
+.chat-input::placeholder{color:var(--text-3)}
+.chat-send{width:38px;height:38px;background:var(--purple);border:none;border-radius:50%;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .1s}
+.chat-send:active{opacity:.8}
+.chat-send svg{width:18px;height:18px}
+
+/* ── Grammar ── */
+.gr-topic-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.gr-topic-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .12s;-webkit-user-select:none;user-select:none}
+.gr-topic-card:active{transform:scale(.97)}
+.gr-topic-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.gr-topic-info{flex:1;min-width:0}
+.gr-topic-title{font-size:15px;font-weight:600;color:var(--text)}
+.gr-topic-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.gr-level{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.gr-level-n5{background:var(--teal-light);color:var(--teal)}
+.gr-level-n4{background:var(--gold-light);color:var(--gold)}
+.gr-level-n3{background:var(--coral-light);color:var(--coral)}
+
+/* Grammar detail view */
+.gr-detail{display:none}
+.gr-detail.active{display:block}
+.gr-back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--purple);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;padding:0 0 14px;-webkit-user-select:none;user-select:none}
+.gr-back-btn svg{width:18px;height:18px;stroke:var(--purple);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.gr-title-card{background:var(--purple);border-radius:var(--radius);padding:20px;margin-bottom:16px;color:white}
+.gr-title-card h2{font-size:20px;font-weight:700;margin-bottom:4px}
+.gr-title-card p{font-size:13px;opacity:.75;line-height:1.5}
+
+/* Grammar explanation steps */
+.gr-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.gr-step{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px}
+.gr-step-label{font-size:11px;font-weight:700;color:var(--purple);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.gr-step p{font-size:14px;color:var(--text-2);line-height:1.7}
+.gr-formula{background:var(--purple-light);border-radius:var(--radius-sm);padding:12px 14px;margin:10px 0;font-size:14px;font-weight:600;color:var(--purple-dark);line-height:1.6;font-family:monospace}
+.gr-examples{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.gr-example{background:var(--bg);border-radius:8px;padding:10px 12px}
+.gr-example .es{font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px}
+.gr-example .ja{font-size:12px;color:var(--text-3)}
+
+/* Grammar conjugation table */
+.gr-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+.gr-table th{background:var(--purple-light);color:var(--purple);font-weight:700;padding:8px 10px;text-align:left;font-size:12px}
+.gr-table td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text-2)}
+.gr-table tr:last-child td{border-bottom:none}
+.gr-table .es-form{font-weight:600;color:var(--text)}
+
+/* Grammar fill-in-the-blank exercise */
+.gr-exercise{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.gr-exercise-label{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.gr-q-num{font-size:11px;color:var(--text-3);margin-bottom:6px}
+.gr-sentence{font-size:17px;color:var(--text);line-height:1.8;margin-bottom:12px}
+.gr-blank{display:inline-block;min-width:80px;border-bottom:2px solid var(--purple);padding:0 4px;text-align:center;font-weight:700;color:var(--purple);font-size:17px;vertical-align:baseline}
+.gr-blank.correct{border-color:var(--teal);color:var(--teal)}
+.gr-blank.wrong{border-color:var(--coral);color:var(--coral)}
+.gr-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.gr-choice{padding:12px 8px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:500;color:var(--text);cursor:pointer;font-family:inherit;text-align:center;transition:transform .1s,border-color .15s,background .15s}
+.gr-choice:active:not(:disabled){transform:scale(.96)}
+.gr-choice.correct{background:var(--teal-light);border-color:var(--teal);color:var(--teal)}
+.gr-choice.wrong{background:var(--coral-light);border-color:var(--coral);color:var(--coral)}
+.gr-ex-feedback{font-size:13px;color:var(--text-3);min-height:20px;margin-bottom:10px;line-height:1.5}
+.gr-next-ex-btn{width:100%;padding:13px;background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;display:none;transition:opacity .1s}
+.gr-next-ex-btn:active{opacity:.85}
+.gr-progress-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.gr-ex-prog-wrap{flex:1;height:5px;background:var(--border);border-radius:99px;overflow:hidden}
+.gr-ex-prog-fill{height:100%;border-radius:99px;background:var(--gold);transition:width .4s}
+.gr-ex-count{font-size:12px;color:var(--text-3);white-space:nowrap}
+.gr-complete{text-align:center;padding:24px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.gr-complete .score{font-size:40px;font-weight:700;color:var(--purple)}
+.gr-complete p{font-size:14px;color:var(--text-2);margin-top:6px}
+.gr-complete-btn{margin-top:16px;padding:13px 32px;background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+
+/* Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:0 4px calc(var(--safe-bottom) + 4px);background:var(--bg-card);border-top:1px solid var(--border);display:flex;z-index:20;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px;cursor:pointer;border:none;background:none;color:var(--text-3);font-size:9px;font-family:inherit;transition:color .15s;gap:3px;-webkit-user-select:none;user-select:none}
+.nav-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-item.active{color:var(--purple)}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--purple);margin-top:-2px;display:none}
+.nav-item.active .nav-dot{display:block}
+
+/* Install banner */
+#install-banner{margin:0 0 16px;background:var(--purple-light);border:1px solid rgba(74,63,168,.2);border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:center;gap:10px;display:none}
+#install-banner p{font-size:13px;color:var(--purple-dark);flex:1;line-height:1.4}
+#install-banner button{padding:7px 14px;background:var(--purple);color:white;border:none;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-logo">ES</div>
+  <div>
+    <div class="header-title">Español</div>
+    <div class="header-sub">スペイン語総合学習</div>
+  </div>
+  <div class="header-streak">🔥 <span id="streak-count">7</span>日</div>
+</header>
+
+<main class="scroll-area" id="scroll-area">
+
+  <div id="install-banner">
+    <p>📲 ホーム画面に追加してアプリとして使えます</p>
+    <button id="install-btn">追加</button>
+  </div>
+
+  <!-- ── LESSONS ── -->
+  <div class="panel active" id="panel-lessons">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="stat-words">142</div><div class="stat-lbl">習得単語</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-xp">1,280</div><div class="stat-lbl">XP</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-acc">84%</div><div class="stat-lbl">正解率</div></div>
+    </div>
+    <div class="section-hd">レッスン</div>
+    <div class="lesson-list">
+      <div class="lesson-card" onclick="alert('挨拶と自己紹介（復習）')">
+        <div class="lesson-icon" style="background:var(--teal-light)">👋</div>
+        <div class="lesson-info"><div class="lesson-title">挨拶と自己紹介</div><div class="lesson-sub">Hola, ¿Cómo estás? など</div></div>
+        <span class="lesson-badge badge-done">完了</span>
+      </div>
+      <div class="lesson-card" onclick="alert('買い物と数字（復習）')">
+        <div class="lesson-icon" style="background:var(--gold-light)">🛍️</div>
+        <div class="lesson-info"><div class="lesson-title">買い物と数字</div><div class="lesson-sub">数、値段の表現</div></div>
+        <span class="lesson-badge badge-done">完了</span>
+      </div>
+      <div class="lesson-card" onclick="switchTab('flash')" style="border-color:var(--purple);border-width:1.5px">
+        <div class="lesson-icon" style="background:var(--purple-light)">🕐</div>
+        <div class="lesson-info"><div class="lesson-title">時間と日程</div><div class="lesson-sub">曜日、時刻の言い方</div></div>
+        <span class="lesson-badge badge-active">学習中</span>
+      </div>
+      <div class="lesson-card locked">
+        <div class="lesson-icon" style="background:var(--bg)">🍽️</div>
+        <div class="lesson-info"><div class="lesson-title">食事と注文</div><div class="lesson-sub">レストランでの会話</div></div>
+        <span class="lesson-badge badge-lock">🔒 ロック</span>
+      </div>
+      <div class="lesson-card locked">
+        <div class="lesson-icon" style="background:var(--bg)">🗺️</div>
+        <div class="lesson-info"><div class="lesson-title">旅行と道案内</div><div class="lesson-sub">場所、方向の表現</div></div>
+        <span class="lesson-badge badge-lock">🔒 ロック</span>
+      </div>
+    </div>
+    <div class="section-hd">今日の目標</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:14px;color:var(--text-2)">単語カード</span>
+        <span style="font-size:14px;font-weight:600;color:var(--purple)">3 / 10</span>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden">
+        <div style="width:30%;height:100%;background:var(--purple);border-radius:99px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FLASHCARDS ── -->
+  <div class="panel" id="panel-flash">
+    <div class="fc-meta">
+      <div class="fc-progress-wrap"><div class="fc-progress-fill" id="fc-fill" style="width:20%"></div></div>
+      <div class="fc-count" id="fc-count">1 / 5</div>
+    </div>
+    <div class="scene">
+      <div class="card-3d" id="flashcard" onclick="flipCard()">
+        <div class="card-face face-front">
+          <div class="fc-pos" id="fc-pos">動詞</div>
+          <div class="fc-word" id="fc-word">hablar</div>
+          <div class="fc-tap">タップして翻訳を見る</div>
+        </div>
+        <div class="card-face face-back">
+          <div class="fc-trans" id="fc-trans">話す</div>
+          <div class="fc-ex" id="fc-ex">Yo hablo español.<br>私はスペイン語を話します。</div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-btns" id="fc-btns" style="display:none">
+      <button class="fc-btn btn-again" onclick="nextCard(false)">✕ もう一度</button>
+      <button class="fc-btn btn-got" onclick="nextCard(true)">✓ 覚えた！</button>
+    </div>
+    <div class="fc-btns" id="fc-flip-hint" style="justify-content:center;margin-top:4px">
+      <button class="fc-btn" style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-2);flex:none;padding:12px 32px" onclick="flipCard()">カードをめくる</button>
+    </div>
+  </div>
+
+  <!-- ── GRAMMAR ── -->
+  <div class="panel" id="panel-grammar">
+
+    <!-- Topic list -->
+    <div id="gr-list-view">
+      <div class="section-hd">文法トピック</div>
+      <div class="gr-topic-list">
+        <div class="gr-topic-card" onclick="openGrammarTopic(0)">
+          <div class="gr-topic-icon" style="background:var(--teal-light)">🔤</div>
+          <div class="gr-topic-info">
+            <div class="gr-topic-title">ser と estar の使い分け</div>
+            <div class="gr-topic-sub">「〜です」を使い分ける</div>
+          </div>
+          <span class="gr-level gr-level-n5">入門</span>
+        </div>
+        <div class="gr-topic-card" onclick="openGrammarTopic(1)">
+          <div class="gr-topic-icon" style="background:var(--purple-light)">📝</div>
+          <div class="gr-topic-info">
+            <div class="gr-topic-title">現在形の活用（規則動詞）</div>
+            <div class="gr-topic-sub">-ar / -er / -ir 動詞</div>
+          </div>
+          <span class="gr-level gr-level-n5">入門</span>
+        </div>
+        <div class="gr-topic-card" onclick="openGrammarTopic(2)">
+          <div class="gr-topic-icon" style="background:var(--gold-light)">🗣️</div>
+          <div class="gr-topic-info">
+            <div class="gr-topic-title">疑問詞（qué, dónde, cuándo…）</div>
+            <div class="gr-topic-sub">5W1H の表現</div>
+          </div>
+          <span class="gr-level gr-level-n5">入門</span>
+        </div>
+        <div class="gr-topic-card" onclick="openGrammarTopic(3)">
+          <div class="gr-topic-icon" style="background:var(--coral-light)">🔀</div>
+          <div class="gr-topic-info">
+            <div class="gr-topic-title">名詞の性と数</div>
+            <div class="gr-topic-sub">男性・女性、単数・複数</div>
+          </div>
+          <span class="gr-level gr-level-n4">初級</span>
+        </div>
+        <div class="gr-topic-card" onclick="openGrammarTopic(4)">
+          <div class="gr-topic-icon" style="background:var(--purple-light)">⏮️</div>
+          <div class="gr-topic-info">
+            <div class="gr-topic-title">過去形（pretérito indefinido）</div>
+            <div class="gr-topic-sub">完了した過去の出来事</div>
+          </div>
+          <span class="gr-level gr-level-n4">初級</span>
+        </div>
+        <div class="gr-topic-card" onclick="openGrammarTopic(5)">
+          <div class="gr-topic-icon" style="background:var(--gold-light)">🔮</div>
+          <div class="gr-topic-info">
+            <div class="gr-topic-title">未来形（futuro simple）</div>
+            <div class="gr-topic-sub">〜するでしょう</div>
+          </div>
+          <span class="gr-level gr-level-n3">中級</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail view -->
+    <div id="gr-detail-view" class="gr-detail">
+      <button class="gr-back-btn" onclick="closeGrammarTopic()">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        トピック一覧に戻る
+      </button>
+      <div class="gr-title-card">
+        <h2 id="gr-detail-title"></h2>
+        <p id="gr-detail-desc"></p>
+      </div>
+
+      <!-- Explanation -->
+      <div class="gr-steps" id="gr-steps-container"></div>
+
+      <!-- Exercise -->
+      <div class="section-hd">練習問題</div>
+      <div class="gr-progress-row">
+        <div class="gr-ex-prog-wrap"><div class="gr-ex-prog-fill" id="gr-ex-fill" style="width:0%"></div></div>
+        <div class="gr-ex-count" id="gr-ex-count">0 / 0</div>
+      </div>
+
+      <div id="gr-exercise-area">
+        <div class="gr-exercise">
+          <div class="gr-exercise-label">✏️ 穴埋め練習</div>
+          <div class="gr-q-num" id="gr-q-num">問題 1</div>
+          <div class="gr-sentence" id="gr-sentence"></div>
+          <div class="gr-choices" id="gr-choices"></div>
+          <div class="gr-ex-feedback" id="gr-ex-feedback"></div>
+          <button class="gr-next-ex-btn" id="gr-next-ex-btn" onclick="nextGrExercise()">次の問題 →</button>
+        </div>
+      </div>
+
+      <div id="gr-complete-area" style="display:none">
+        <div class="gr-complete">
+          <div class="score" id="gr-complete-score"></div>
+          <p id="gr-complete-msg"></p>
+          <button class="gr-complete-btn" onclick="retryGrExercise()">もう一度挑戦</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── QUIZ ── -->
+  <div class="panel" id="panel-quiz">
+    <div class="quiz-q-card">
+      <div class="quiz-q-sub" id="quiz-num">問題 1 / 6</div>
+      <div class="quiz-q-text" id="quiz-q">「comer」の意味は？</div>
+    </div>
+    <div class="quiz-opts" id="quiz-opts"></div>
+    <div class="quiz-feedback" id="quiz-feedback" style="display:none">
+      <span class="icon" id="fb-icon"></span>
+      <span id="fb-text"></span>
+    </div>
+    <button class="next-q-btn" id="next-q-btn" onclick="nextQuestion()">次の問題 →</button>
+  </div>
+
+  <!-- ── CHAT ── -->
+  <div class="panel" id="panel-chat">
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg-wrap">
+        <div class="msg-bubble msg-ai">¡Hola! スペイン語の練習をしましょう。どんなテーマで話しますか？（旅行・食べ物・自己紹介など）</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" type="text" placeholder="スペイン語または日本語で入力..." autocomplete="off" autocorrect="off">
+      <button class="chat-send" onclick="sendChat()" aria-label="送信">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<!-- Bottom Nav (5 tabs) -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-lessons" onclick="switchTab('lessons')">
+    <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    レッスン<div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" id="nav-flash" onclick="switchTab('flash')">
+    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    単語<div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" id="nav-grammar" onclick="switchTab('grammar')">
+    <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg>
+    文法<div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" id="nav-quiz" onclick="switchTab('quiz')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    クイズ<div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" id="nav-chat" onclick="switchTab('chat')">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    AI会話<div class="nav-dot"></div>
+  </button>
+</nav>
+
+<script>
+// ── Manifest ──
+const manifest={name:"Español — スペイン語学習",short_name:"Español",description:"スペイン語総合学習アプリ",start_url:"./",display:"standalone",background_color:"#4A3FA8",theme_color:"#4A3FA8",orientation:"portrait",lang:"ja",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%234A3FA8'/%3E%3Ctext x='256' y='340' font-family='Georgia,serif' font-size='240' font-weight='bold' fill='white' text-anchor='middle'%3EES%3C/text%3E%3C/svg%3E",sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}]};
+document.getElementById('manifest-link').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
+
+// ── Service Worker ──
+const swCode=`const CACHE='espanol-v2';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./'])).then(()=>self.skipWaiting()))});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(cached=>cached||fetch(e.request).then(res=>{if(res.ok){const r=res.clone();caches.open(CACHE).then(c=>c.put(e.request,r))}return res}).catch(()=>cached)))});`;
+if('serviceWorker' in navigator){const b=new Blob([swCode],{type:'application/javascript'});navigator.serviceWorker.register(URL.createObjectURL(b)).catch(()=>{});}
+
+// ── Install ──
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-banner').style.display='flex';});
+document.getElementById('install-btn').addEventListener('click',()=>{if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-banner').style.display='none'});}});
+
+// ── Nav ──
+function switchTab(tab){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('active');
+  document.getElementById('scroll-area').scrollTo(0,0);
+}
+
+// ── Flashcards ──
+const cards=[
+  {word:'hablar',pos:'動詞',trans:'話す',ex:'Yo hablo español.\n私はスペイン語を話します。'},
+  {word:'comer',pos:'動詞',trans:'食べる',ex:'Ella come mucho.\n彼女はたくさん食べます。'},
+  {word:'vivir',pos:'動詞',trans:'住む・生きる',ex:'Vivimos en Tokio.\n私たちは東京に住んでいます。'},
+  {word:'mañana',pos:'名詞/副詞',trans:'明日・朝',ex:'Hasta mañana.\nまた明日。'},
+  {word:'gracias',pos:'感嘆詞',trans:'ありがとう',ex:'¡Muchas gracias!\nどうもありがとう！'},
+];
+let fcIdx=0,fcFlipped=false;
+function setCard(i){const c=cards[i];document.getElementById('fc-word').textContent=c.word;document.getElementById('fc-pos').textContent=c.pos;document.getElementById('fc-trans').textContent=c.trans;document.getElementById('fc-ex').textContent=c.ex;document.getElementById('fc-fill').style.width=((i+1)/cards.length*100)+'%';document.getElementById('fc-count').textContent=(i+1)+' / '+cards.length;}
+function flipCard(){fcFlipped=!fcFlipped;document.getElementById('flashcard').classList.toggle('flipped',fcFlipped);document.getElementById('fc-btns').style.display=fcFlipped?'flex':'none';document.getElementById('fc-flip-hint').style.display=fcFlipped?'none':'flex';}
+function nextCard(knew){if(knew){let w=parseInt(document.getElementById('stat-words').textContent);document.getElementById('stat-words').textContent=w+1;}fcIdx=(fcIdx+1)%cards.length;setCard(fcIdx);document.getElementById('flashcard').classList.remove('flipped');document.getElementById('fc-btns').style.display='none';document.getElementById('fc-flip-hint').style.display='flex';fcFlipped=false;}
+setCard(0);
+
+// ── Quiz ──
+const questions=[
+  {q:'「comer」の意味は？',opts:['食べる','飲む','話す','読む'],ans:0,hint:'com- は「食べる」系の語根です。'},
+  {q:'「Buenas noches」はいつ使う？',opts:['おはよう','こんにちは','こんばんは','さようなら'],ans:2,hint:'noches = 夜（複数形）です。'},
+  {q:'「¿Cómo te llamas?」の意味は？',opts:['元気ですか？','お名前は？','どこから来ましたか？','何歳ですか？'],ans:1,hint:'llamarse = ～という名前である。'},
+  {q:'「rojo」の意味は？',opts:['青','緑','赤','白'],ans:2,hint:'スペインの赤（rojo）を覚えましょう。'},
+  {q:'「¿Dónde está el baño?」の意味は？',opts:['お手洗いはどこですか？','何時ですか？','いくらですか？','助けてください！'],ans:0,hint:'dónde=どこ、baño=お手洗い。'},
+  {q:'「hablar」の「yo」形は？',opts:['hablas','habla','hablo','hablan'],ans:2,hint:'ar動詞のyo形語尾は -o です。'},
+];
+let qIdx=0,qAnswered=false,qCorrect=0;
+function renderQuestion(){
+  qAnswered=false;const q=questions[qIdx];
+  document.getElementById('quiz-num').textContent=`問題 ${qIdx+1} / ${questions.length}`;
+  document.getElementById('quiz-q').textContent=q.q;
+  document.getElementById('quiz-feedback').style.display='none';
+  document.getElementById('next-q-btn').style.display='none';
+  const opts=document.getElementById('quiz-opts');opts.innerHTML='';
+  q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='quiz-opt';btn.textContent=o;btn.onclick=()=>answerQuiz(i);opts.appendChild(btn);});
+}
+function answerQuiz(i){
+  if(qAnswered)return;qAnswered=true;const q=questions[qIdx];
+  document.querySelectorAll('.quiz-opt').forEach((b,j)=>{b.disabled=true;if(j===q.ans)b.classList.add('correct');else if(j===i)b.classList.add('wrong');});
+  const fb=document.getElementById('quiz-feedback');fb.style.display='flex';
+  if(i===q.ans){document.getElementById('fb-icon').textContent='✅';document.getElementById('fb-text').textContent='正解！ '+q.hint;qCorrect++;let xp=parseInt(document.getElementById('stat-xp').textContent.replace(/,/g,''));document.getElementById('stat-xp').textContent=(xp+15).toLocaleString();}
+  else{document.getElementById('fb-icon').textContent='❌';document.getElementById('fb-text').textContent=`不正解。正解は「${q.opts[q.ans]}」。${q.hint}`;}
+  document.getElementById('next-q-btn').style.display='block';
+  document.getElementById('stat-acc').textContent=Math.round(qCorrect/(qIdx+1)*100)+'%';
+}
+function nextQuestion(){qIdx=(qIdx+1)%questions.length;renderQuestion();}
+renderQuestion();
+
+// ── Chat ──
+document.getElementById('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
+async function sendChat(){
+  const input=document.getElementById('chat-input');const text=input.value.trim();if(!text)return;input.value='';
+  const box=document.getElementById('chat-messages');
+  const uDiv=document.createElement('div');uDiv.className='msg-wrap user';uDiv.innerHTML=`<div class="msg-bubble msg-user">${text}</div>`;box.appendChild(uDiv);
+  const typDiv=document.createElement('div');typDiv.className='msg-wrap';typDiv.innerHTML=`<div class="msg-bubble msg-ai msg-typing">入力中...</div>`;box.appendChild(typDiv);
+  box.scrollTop=box.scrollHeight;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:'あなたはスペイン語学習をサポートするAI家庭教師です。ユーザーとスペイン語と日本語を交えて会話し、スペイン語の練習を手伝ってください。スペイン語フレーズを積極的に使いながら、日本語で丁寧に解説も加えてください。短く、親しみやすいトーンで応答してください。',messages:[{role:'user',content:text}]})});
+    const data=await res.json();const reply=(data.content||[]).map(b=>b.text||'').join('');
+    typDiv.querySelector('.msg-bubble').textContent=reply;typDiv.querySelector('.msg-bubble').classList.remove('msg-typing');
+  }catch(e){typDiv.querySelector('.msg-bubble').textContent='接続エラー。ネットワークを確認してください。';typDiv.querySelector('.msg-bubble').classList.remove('msg-typing');}
+  box.scrollTop=box.scrollHeight;
+}
+
+// ── Grammar Data ──
+const grammarTopics = [
+  {
+    title: 'ser と estar の使い分け',
+    desc: 'スペイン語には「〜です」を表す動詞が2つあります。恒久的な状態には ser、一時的な状態や場所には estar を使います。',
+    steps: [
+      {
+        label: '① ser ── 本質・永続的な特徴',
+        body: '出身、職業、性質など変わりにくい特徴を表します。',
+        formula: 'Soy / Eres / Es / Somos / Sois / Son',
+        examples: [
+          {es:'Soy japonés.',ja:'私は日本人です。'},
+          {es:'Ella es médica.',ja:'彼女は医師です。'},
+          {es:'El cielo es azul.',ja:'空は青い。'}
+        ]
+      },
+      {
+        label: '② estar ── 状態・場所・一時的なこと',
+        body: '場所、気分、健康状態など変わりやすいことを表します。',
+        formula: 'Estoy / Estás / Está / Estamos / Estáis / Están',
+        examples: [
+          {es:'Estoy cansado.',ja:'私は疲れています。'},
+          {es:'¿Dónde está el baño?',ja:'お手洗いはどこですか？'},
+          {es:'La sopa está fría.',ja:'スープが冷めています。'}
+        ]
+      }
+    ],
+    exercises: [
+      {sentence:'Yo ___ estudiante.',blank:'soy',choices:['soy','estoy','es','está'],hint:'職業・身分なので ser を使います。'},
+      {sentence:'Ella ___ en casa.',blank:'está',choices:['es','soy','está','estás'],hint:'場所を表すので estar を使います。'},
+      {sentence:'Nosotros ___ amigos.',blank:'somos',choices:['estamos','somos','son','están'],hint:'「友人である」は永続的な関係なので ser です。'},
+      {sentence:'¿Cómo ___ tú?',blank:'estás',choices:['eres','estás','es','está'],hint:'「元気ですか？」は状態なので estar です。'},
+      {sentence:'Madrid ___ en España.',blank:'está',choices:['es','están','está','estoy'],hint:'場所を表すので estar を使います。'},
+    ]
+  },
+  {
+    title: '現在形の活用（規則動詞）',
+    desc: 'スペイン語の動詞は語尾によって活用します。規則動詞は語尾が -ar / -er / -ir の3種類です。',
+    steps: [
+      {
+        label: '-ar 動詞（例：hablar 話す）',
+        body: 'hablar → hablo, hablas, habla, hablamos, habláis, hablan',
+        table: {
+          headers:['主語','語尾','例（hablar）'],
+          rows:[
+            ['yo（私）','-o','hablo'],
+            ['tú（あなた）','-as','hablas'],
+            ['él/ella（彼/彼女）','-a','habla'],
+            ['nosotros（私たち）','-amos','hablamos'],
+            ['vosotros（あなた方）','-áis','habláis'],
+            ['ellos（彼ら）','-an','hablan'],
+          ]
+        }
+      },
+      {
+        label: '-er 動詞（例：comer 食べる）',
+        body: 'comer → como, comes, come, comemos, coméis, comen',
+        examples: [
+          {es:'Como arroz todos los días.',ja:'私は毎日ご飯を食べます。'},
+          {es:'¿Qué comes tú?',ja:'あなたは何を食べますか？'},
+        ]
+      },
+      {
+        label: '-ir 動詞（例：vivir 住む）',
+        body: 'vivir → vivo, vives, vive, vivimos, vivís, viven',
+        examples: [
+          {es:'Vivimos en Tokio.',ja:'私たちは東京に住んでいます。'},
+          {es:'¿Dónde vives?',ja:'どこに住んでいますか？'},
+        ]
+      }
+    ],
+    exercises: [
+      {sentence:'Yo ___ mucho. (hablar)',blank:'hablo',choices:['hablo','hablas','habla','hablan'],hint:'yo（私）の -ar 動詞語尾は -o です。'},
+      {sentence:'Ella ___ pizza. (comer)',blank:'come',choices:['como','comes','comen','come'],hint:'ella（彼女）の -er 動詞語尾は -e です。'},
+      {sentence:'Nosotros ___ en Madrid. (vivir)',blank:'vivimos',choices:['viven','vivo','vivimos','vivís'],hint:'nosotros の -ir 動詞語尾は -imos です。'},
+      {sentence:'¿Tú ___ inglés? (hablar)',blank:'hablas',choices:['hablo','habla','habláis','hablas'],hint:'tú（あなた）の -ar 動詞語尾は -as です。'},
+    ]
+  },
+  {
+    title: '疑問詞（qué, dónde, cuándo…）',
+    desc: 'スペイン語の疑問詞はアクセント符号（´）がつきます。疑問文では文頭と文末に ¿ と ? を置きます。',
+    steps: [
+      {
+        label: '主要な疑問詞',
+        body: '日本語の「5W1H」に対応する疑問詞を覚えましょう。',
+        table: {
+          headers:['疑問詞','意味','例文'],
+          rows:[
+            ['¿Qué?','何？','¿Qué es esto? — これは何？'],
+            ['¿Dónde?','どこ？','¿Dónde está? — どこにありますか？'],
+            ['¿Cuándo?','いつ？','¿Cuándo llegas? — いつ着きますか？'],
+            ['¿Quién?','誰？','¿Quién eres? — あなたは誰？'],
+            ['¿Por qué?','なぜ？','¿Por qué? — なぜですか？'],
+            ['¿Cómo?','どのように？','¿Cómo estás? — 元気ですか？'],
+            ['¿Cuánto?','いくら/どのくらい？','¿Cuánto cuesta? — いくらですか？'],
+          ]
+        }
+      }
+    ],
+    exercises: [
+      {sentence:'___ estás? （元気ですか？）',blank:'¿Cómo',choices:['¿Qué','¿Dónde','¿Cómo','¿Cuándo'],hint:'「どのように？＝元気ですか？」は Cómo を使います。'},
+      {sentence:'___ cuesta este libro?（この本はいくらですか？）',blank:'¿Cuánto',choices:['¿Cuándo','¿Cuánto','¿Quién','¿Por qué'],hint:'値段を聞くときは Cuánto を使います。'},
+      {sentence:'___ llegas a casa?（いつ家に着きますか？）',blank:'¿Cuándo',choices:['¿Dónde','¿Qué','¿Cuándo','¿Cómo'],hint:'時間・時期を聞くときは Cuándo を使います。'},
+      {sentence:'___ es tu nombre?（あなたの名前は何ですか？）',blank:'¿Cuál',choices:['¿Qué','¿Cuál','¿Dónde','¿Quién'],hint:'「どれ・どちら」の Cuál がここでは自然です。'},
+    ]
+  },
+  {
+    title: '名詞の性と数',
+    desc: 'スペイン語の名詞はすべて男性名詞か女性名詞に分類されます。また単数・複数によって形が変わります。',
+    steps: [
+      {
+        label: '名詞の性（男性・女性）',
+        body: '一般的に -o で終わる名詞は男性名詞、-a で終わる名詞は女性名詞です。冠詞（el/la）で区別します。',
+        examples: [
+          {es:'el libro（本）/ la mesa（机）',ja:'el = 男性冠詞、la = 女性冠詞'},
+          {es:'el chico（男の子）/ la chica（女の子）',ja:'人や動物は自然の性別に従う場合が多い'},
+        ]
+      },
+      {
+        label: '名詞の数（単数・複数）',
+        body: '母音で終わる名詞は -s を、子音で終わる名詞は -es を語尾に付けて複数形にします。',
+        table: {
+          headers:['単数','複数','意味'],
+          rows:[
+            ['el libro','los libros','本'],
+            ['la mesa','las mesas','机'],
+            ['el árbol','los árboles','木'],
+            ['la ciudad','las ciudades','都市'],
+          ]
+        }
+      }
+    ],
+    exercises: [
+      {sentence:'___ libro está aquí.（この本はここにあります）',blank:'El',choices:['El','La','Los','Las'],hint:'libro（本）は男性名詞なので El を使います。'},
+      {sentence:'___ chicas son simpáticas.（その女の子たちは親切です）',blank:'Las',choices:['El','La','Los','Las'],hint:'chicas は女性複数なので Las です。'},
+      {sentence:'Tengo dos ___. (libro)',blank:'libros',choices:['libro','libros','libroes','libra'],hint:'母音で終わる名詞の複数は -s を付けます。'},
+      {sentence:'___ ciudad es grande.（その都市は大きい）',blank:'La',choices:['El','La','Los','Las'],hint:'ciudad（都市）は女性名詞なので La です。'},
+    ]
+  },
+  {
+    title: '過去形（pretérito indefinido）',
+    desc: '特定の時点に完了した過去の出来事を表す時制です。「〜した」という意味で使われます。',
+    steps: [
+      {
+        label: '-ar 動詞の過去形（例：hablar）',
+        body: '語根（habl-）に過去の語尾を付けます。',
+        table: {
+          headers:['主語','語尾','例（hablar）'],
+          rows:[
+            ['yo','-é','hablé'],
+            ['tú','-aste','hablaste'],
+            ['él/ella','-ó','habló'],
+            ['nosotros','-amos','hablamos'],
+            ['vosotros','-asteis','hablasteis'],
+            ['ellos','-aron','hablaron'],
+          ]
+        }
+      },
+      {
+        label: '-er / -ir 動詞の過去形（例：comer, vivir）',
+        body: '',
+        examples: [
+          {es:'comí, comiste, comió, comimos, comisteis, comieron',ja:'comer の過去形'},
+          {es:'viví, viviste, vivió, vivimos, vivisteis, vivieron',ja:'vivir の過去形'},
+          {es:'Ayer comí sushi.',ja:'昨日、寿司を食べました。'},
+          {es:'El año pasado viví en Osaka.',ja:'去年、大阪に住んでいました。'},
+        ]
+      }
+    ],
+    exercises: [
+      {sentence:'Ayer yo ___ con Juan. (hablar)',blank:'hablé',choices:['hablé','hablaste','habló','hablar'],hint:'yo の -ar 動詞過去形語尾は -é です。'},
+      {sentence:'Ella ___ paella anoche. (comer)',blank:'comió',choices:['comí','comiste','comió','comer'],hint:'ella の -er 動詞過去形語尾は -ió です。'},
+      {sentence:'Nosotros ___ en Barcelona. (vivir)',blank:'vivimos',choices:['vivimos','vivieron','viví','viviste'],hint:'nosotros の -ir 動詞過去形語尾は -imos です。'},
+      {sentence:'¿Tú ___ el libro? (leer)',blank:'leíste',choices:['leí','leíste','leyó','leer'],hint:'tú の -er 動詞過去形語尾は -iste です（leer は leíste）。'},
+    ]
+  },
+  {
+    title: '未来形（futuro simple）',
+    desc: '「〜するでしょう」「〜するつもりです」を表します。規則動詞は -ar/-er/-ir 共通の語尾を使います。',
+    steps: [
+      {
+        label: '未来形の活用（規則動詞）',
+        body: '不定詞（原形）にそのまま語尾を付けるだけでOKです！',
+        table: {
+          headers:['主語','語尾','例（hablar）'],
+          rows:[
+            ['yo','-é','hablaré'],
+            ['tú','-ás','hablarás'],
+            ['él/ella','-á','hablará'],
+            ['nosotros','-emos','hablaremos'],
+            ['vosotros','-éis','hablaréis'],
+            ['ellos','-án','hablarán'],
+          ]
+        }
+      },
+      {
+        label: '未来形の使い方',
+        body: '確定した近い未来は「ir a + 不定詞」でも表現できます。',
+        examples: [
+          {es:'Mañana estudiaré español.',ja:'明日、スペイン語を勉強するでしょう。'},
+          {es:'¿Vivirás en España?',ja:'スペインに住むつもりですか？'},
+          {es:'Voy a comer sushi. (近い未来)',ja:'寿司を食べるつもりです。'},
+        ]
+      }
+    ],
+    exercises: [
+      {sentence:'Mañana yo ___ español. (estudiar)',blank:'estudiaré',choices:['estudiaré','estudiarás','estudiar','estudiará'],hint:'yo の未来形語尾は -é です（不定詞 + é）。'},
+      {sentence:'Ella ___ a Madrid. (ir)',blank:'irá',choices:['iré','irás','irá','irán'],hint:'ella の未来形語尾は -á です（ir は不規則ですが語尾は同じ）。'},
+      {sentence:'Nosotros ___ juntos. (comer)',blank:'comeremos',choices:['comeremos','comeré','comerás','comerán'],hint:'nosotros の未来形語尾は -emos です。'},
+      {sentence:'¿Tú ___ en casa mañana? (estar)',blank:'estarás',choices:['estaré','estarás','estará','estarán'],hint:'tú の未来形語尾は -ás です（estar の語根は estar-）。'},
+    ]
+  }
+];
+
+let currentTopic = null;
+let grExIdx = 0;
+let grExCorrect = 0;
+let grExAnswered = false;
+
+function openGrammarTopic(idx) {
+  currentTopic = grammarTopics[idx];
+  grExIdx = 0; grExCorrect = 0; grExAnswered = false;
+  document.getElementById('gr-detail-title').textContent = currentTopic.title;
+  document.getElementById('gr-detail-desc').textContent = currentTopic.desc;
+
+  // Build explanation steps
+  const container = document.getElementById('gr-steps-container');
+  container.innerHTML = '';
+  currentTopic.steps.forEach(step => {
+    const div = document.createElement('div');
+    div.className = 'gr-step';
+    let html = `<div class="gr-step-label">${step.label}</div>`;
+    if (step.body) html += `<p>${step.body}</p>`;
+    if (step.formula) html += `<div class="gr-formula">${step.formula}</div>`;
+    if (step.table) {
+      html += `<table class="gr-table"><thead><tr>${step.table.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+      step.table.rows.forEach(row => {
+        html += `<tr>${row.map((cell,i)=>`<td${i===0?'':i===row.length-1?' class="es-form"':''}">${cell}</td>`).join('')}</tr>`;
+      });
+      html += '</tbody></table>';
+    }
+    if (step.examples) {
+      html += '<div class="gr-examples">';
+      step.examples.forEach(ex => {
+        html += `<div class="gr-example"><div class="es">${ex.es}</div><div class="ja">${ex.ja}</div></div>`;
+      });
+      html += '</div>';
+    }
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+
+  document.getElementById('gr-complete-area').style.display = 'none';
+  document.getElementById('gr-exercise-area').style.display = 'block';
+  renderGrExercise();
+
+  document.getElementById('gr-list-view').style.display = 'none';
+  document.getElementById('gr-detail-view').classList.add('active');
+  document.getElementById('scroll-area').scrollTo(0, 0);
+}
+
+function closeGrammarTopic() {
+  document.getElementById('gr-detail-view').classList.remove('active');
+  document.getElementById('gr-list-view').style.display = 'block';
+  document.getElementById('scroll-area').scrollTo(0, 0);
+}
+
+function renderGrExercise() {
+  const exs = currentTopic.exercises;
+  const ex = exs[grExIdx];
+  grExAnswered = false;
+  document.getElementById('gr-q-num').textContent = `問題 ${grExIdx+1} / ${exs.length}`;
+  document.getElementById('gr-ex-fill').style.width = (grExIdx/exs.length*100)+'%';
+  document.getElementById('gr-ex-count').textContent = `${grExIdx} / ${exs.length}`;
+  document.getElementById('gr-ex-feedback').textContent = '';
+  document.getElementById('gr-next-ex-btn').style.display = 'none';
+
+  // Sentence with blank
+  const sentenceEl = document.getElementById('gr-sentence');
+  sentenceEl.innerHTML = ex.sentence.replace('___', `<span class="gr-blank" id="gr-blank-span">___</span>`);
+
+  // Shuffled choices
+  const shuffled = [...ex.choices].sort(() => Math.random() - 0.5);
+  const choicesEl = document.getElementById('gr-choices');
+  choicesEl.innerHTML = '';
+  shuffled.forEach(choice => {
+    const btn = document.createElement('button');
+    btn.className = 'gr-choice';
+    btn.textContent = choice;
+    btn.onclick = () => answerGrExercise(choice, btn);
+    choicesEl.appendChild(btn);
+  });
+}
+
+function answerGrExercise(choice, btn) {
+  if (grExAnswered) return;
+  grExAnswered = true;
+  const ex = currentTopic.exercises[grExIdx];
+  const correct = choice === ex.blank;
+  const blankSpan = document.getElementById('gr-blank-span');
+
+  document.querySelectorAll('.gr-choice').forEach(b => {
+    b.disabled = true;
+    if (b.textContent === ex.blank) b.classList.add('correct');
+    else if (b === btn && !correct) b.classList.add('wrong');
+  });
+
+  blankSpan.textContent = ex.blank;
+  blankSpan.classList.add(correct ? 'correct' : 'wrong');
+
+  const fb = document.getElementById('gr-ex-feedback');
+  if (correct) {
+    fb.textContent = '✅ 正解！ ' + ex.hint;
+    fb.style.color = 'var(--teal)';
+    grExCorrect++;
+    let xp = parseInt(document.getElementById('stat-xp').textContent.replace(/,/g,''));
+    document.getElementById('stat-xp').textContent = (xp+10).toLocaleString();
+  } else {
+    fb.textContent = `❌ 不正解。${ex.hint}`;
+    fb.style.color = 'var(--coral)';
+  }
+  document.getElementById('gr-next-ex-btn').style.display = 'block';
+}
+
+function nextGrExercise() {
+  grExIdx++;
+  const exs = currentTopic.exercises;
+  if (grExIdx >= exs.length) {
+    // Show complete
+    document.getElementById('gr-exercise-area').style.display = 'none';
+    document.getElementById('gr-complete-area').style.display = 'block';
+    const pct = Math.round(grExCorrect/exs.length*100);
+    document.getElementById('gr-complete-score').textContent = `${grExCorrect} / ${exs.length}`;
+    document.getElementById('gr-complete-msg').textContent =
+      pct===100 ? '🎉 パーフェクト！素晴らしい！' :
+      pct>=70 ? `正解率 ${pct}%！もう少しで完璧です。` :
+      `正解率 ${pct}%。もう一度復習しましょう！`;
+    document.getElementById('gr-ex-fill').style.width = '100%';
+    document.getElementById('gr-ex-count').textContent = `${exs.length} / ${exs.length}`;
+  } else {
+    renderGrExercise();
+  }
+}
+
+function retryGrExercise() {
+  grExIdx = 0; grExCorrect = 0; grExAnswered = false;
+  document.getElementById('gr-complete-area').style.display = 'none';
+  document.getElementById('gr-exercise-area').style.display = 'block';
+  renderGrExercise();
+}
+</script>
+</body>
+</html>
